@@ -1,0 +1,12 @@
+Get http://localhost:3001/api/notes
+
+###
+
+Post http://localhost:3001/api/notes
+Content-Type: application/json
+//there has to be a space to split the content AND head
+
+{
+    "content": "VS Code REST client",
+    "important": false
+}
