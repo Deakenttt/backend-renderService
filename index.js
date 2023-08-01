@@ -64,7 +64,7 @@ const express = require('express')
 const cors = require('cors')
 const app = express()
 
-const app2 = express()
+//const app2 = express()
 
 const morgen = require('morgan')
 const app3 = morgen('combined')
@@ -198,13 +198,13 @@ app.post('/api/persons', (request, response) => {
     console.log(`Server running on port ${PORT}`)
   })
 
-  app2.get('/api/persons', (request, response) => {
-    response.json(persons)
-  })
+  // app2.get('/api/persons', (request, response) => {
+  //   response.json(persons)
+  // })
 
-  const PORT2 = 3002
-  app2.listen(PORT2, () => {
-    console.log(`Server running on port ${PORT2}`)
-  })
+  // const PORT2 = 3002
+  // app2.listen(PORT2, () => {
+  //   console.log(`Server running on port ${PORT2}`)
+  // })
 
 
