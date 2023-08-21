@@ -52,6 +52,31 @@ let persons =[
 // console.log(`Server running on port ${PORT}`)
 // console.log(`note is ${notes}`);
 
+//store notes in a cloud: mongodb+srv://Deaken:${password}@cluster0.b4num6j.mongodb.net/phonebook?retryWrites=true&w=majority
+
+// const mongoose = require('mongoose')
+// const password = process.argv[2]
+
+// const url =
+//   `mongodb+srv://Deaken:${password}@cluster0.b4num6j.mongodb.net/phonebook?retryWrites=true&w=majority`
+
+// mongoose.connect(url)
+
+// const noteSchema = new mongoose.Schema({
+//   content: String,
+//   important: Boolean,
+// })
+// don't the id and verson to show in the fornt-end
+// noteSchema.set('toJSON', {
+//   transform: (document, returnedObject) => {
+//     returnedObject.id = returnedObject._id.toString()
+//     delete returnedObject._id
+//     delete returnedObject.__v
+//   }
+// })
+
+// const Note = mongoose.model('Note', noteSchema)
+
 const generateId = () => {
   const maxId = notes.length > 0
     ? Math.max(...notes.map(n => n.id))
@@ -59,10 +84,15 @@ const generateId = () => {
   return maxId + 1
 }
 
+// samiliar as process.env.MONGODB_URI, URL are in .env
+// dotenv has to get ipmort before note
+require('dotenv').config()
 // Using express
 const express = require('express')
 const cors = require('cors')
 const app = express()
+//import modules of Note model
+const Note = require('./models/note')
 
 //const app2 = express()
 
@@ -90,17 +120,26 @@ app.post('/api/notes', (request, response) => {
     id: generateId(),
   }
 
-  notes = notes.concat(note)
-
-  response.json(note)
+  //notes = notes.concat(note)
+  note.save().then(savedNote => {
+    response.json(savedNote)
+  })
+  
+  // response.json(note)
 })
 
 app.get('/', (request, response) => {
     response.send('<h1>Hello World!</h1>')
   })
   
+  // app.get('/api/notes', (request, response) => {
+  //   response.json(notes)
+  // })
+
   app.get('/api/notes', (request, response) => {
-    response.json(notes)
+    Note.find({}).then(notes => {
+      response.json(notes)
+    })
   })
 
   app.get('/api/notes/:id', (request, response) => {
