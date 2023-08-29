@@ -13,3 +13,24 @@ Content-Type: application/json
     "number": "020-12345"
 }
 
+###
+
+POST http://localhost:3002/api/persons
+Content-Type: application/json
+
+{
+    "name": "XXX1",
+    "number": "000-00001"
+}
+
+###
+
+Get http://localhost:3002/api/persons
+
+###
+
+Get http://localhost:3002/api/persons/84dfd10c734df401f2821a5d
+
+###
+
+Post http://localhost:3002/api/personlist

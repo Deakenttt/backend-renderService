@@ -1,0 +1,3 @@
+node_modules
+# we hide the password from github
+.env

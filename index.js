@@ -1,45 +1,45 @@
 //const http = require('http')
 
-let notes = [
-    {
-        id: 1,
-        content: "HTML is easy",
-        important: true
-    },
-    {
-        id: 2,
-        content: "Browser can execute only JavaScript",
-        important: false
-    },
-    {
-        id: 3,
-        content: "GET and POST are the most important methods of HTTP protocol",
-        important: true
-    }
-]
+// let notes = [
+//     {
+//         id: 1,
+//         content: "HTML is easy",
+//         important: true
+//     },
+//     {
+//         id: 2,
+//         content: "Browser can execute only JavaScript",
+//         important: false
+//     },
+//     {
+//         id: 3,
+//         content: "GET and POST are the most important methods of HTTP protocol",
+//         important: true
+//     }
+// ]
 
-let persons =[
-  { 
-    "id": 1,
-    "name": "Arto Hellas", 
-    "number": "040-123456"
-  },
-  { 
-    "id": 2,
-    "name": "Ada Lovelace", 
-    "number": "39-44-5323523"
-  },
-  { 
-    "id": 3,
-    "name": "Dan Abramov", 
-    "number": "12-43-234345"
-  },
-  { 
-    "id": 4,
-    "name": "Mary Poppendieck",
-    "number": "39-23-6423122"
-  }
-]
+// let persons =[
+//   { 
+//     "id": 1,
+//     "name": "Arto Hellas", 
+//     "number": "040-123456"
+//   },
+//   { 
+//     "id": 2,
+//     "name": "Ada Lovelace", 
+//     "number": "39-44-5323523"
+//   },
+//   { 
+//     "id": 3,
+//     "name": "Dan Abramov", 
+//     "number": "12-43-234345"
+//   },
+//   { 
+//     "id": 4,
+//     "name": "Mary Poppendieck",
+//     "number": "39-23-6423122"
+//   }
+// ]
 
 
 // const app = http.createServer((request, response) => {
@@ -93,7 +93,8 @@ const cors = require('cors')
 const app = express()
 //import modules of Note model
 const Note = require('./models/note')
-
+//import modules of Person model
+const Person = require('./models/person')
 //const app2 = express()
 
 const morgen = require('morgan')
@@ -103,139 +104,182 @@ app.use(express.json())
 app.use(cors())
 app.use(express.static('build'))
 
+const insertPersons = async (persons) =>{
+  try {
+    const result = await Person.insertMany(persons);
+    console.log('Persons inserted:', result);
+  } catch (error) {
+    console.error('Error:', error);
+  }
+} 
+
 app.post('/api/notes', (request, response) => {
   const body = request.body
   console.log(`content: ${body.content}`);
   // content property may not be empty
   if (!body.content) {
-    return response.status(400).json({ 
-      error: 'content missing' 
+    return response.status(400).json({
+      error: 'content missing'
     })
   }
 
   // important property may is empty, we defind important is false
-  const note = {
+  const note = new Note({
     content: body.content,
-    important: body.important || false,
-    id: generateId(),
-  }
+    important: body.important || false
+  })
 
   //notes = notes.concat(note)
+  // response.json(note)
+
+  //using mongoose
   note.save().then(savedNote => {
     response.json(savedNote)
   })
-  
-  // response.json(note)
+
 })
 
 app.get('/', (request, response) => {
-    response.send('<h1>Hello World!</h1>')
-  })
-  
-  // app.get('/api/notes', (request, response) => {
-  //   response.json(notes)
-  // })
+  response.send('<h1>Hello World!</h1>')
+})
 
-  app.get('/api/notes', (request, response) => {
-    Note.find({}).then(notes => {
-      response.json(notes)
+// app.get('/api/notes', (request, response) => {
+//   response.json(notes)
+// })
+
+app.get('/api/notes', (request, response) => {
+  Note.find({}).then(notes => {
+    response.json(notes)
+  })
+})
+
+app.get('/api/notes/:id', (request, response) => {
+  const id = request.params.id
+  Note.findById(id)
+    .then(note => {
+      if (note) {
+        response.json(note)
+      }
+      else {
+        response.status(404).end()
+      }
     })
+    .catch(error => {
+      console.log(error);
+      response.status(500).end()
+    })
+})
+
+app.delete('/api/notes/:id', (request, response) => {
+  const id = request.params.id
+  notes = notes.filter(note => note.id !== id)
+
+  response.status(204).end()
+})
+
+
+app.get('/api/persons', (request, response) => {
+  Person.find({}).then(person => {
+    response.json(person)
   })
+})
 
-  app.get('/api/notes/:id', (request, response) => {
-    const id = Number(request.params.id)
-    const note = notes.find(note => note.id === id)
-    
-    if (note) {
-      response.json(note)
-    } 
-    else {
-      response.status(404).end()
-    }
-  })
-
-  app.delete('/api/notes/:id', (request, response) => {
-    const id = Number(request.params.id)
-    notes = notes.filter(note => note.id !== id)
-  
-    response.status(204).end()
-  })
-
-
-  app.get('/api/persons', (request, response) => {
-    response.json(persons)
-  })
-
-  app.get('/info', (request, response) =>{
-    const names = persons.map(person => person.name)
-    const time = Date()
-    response.send(`<h1> 
+app.get('/info', (request, response) => {
+  const names = Person.map(person => person.name)
+  const time = Date()
+  response.send(`<h1> 
     <div>Name: ${names.join(', ')}</div>
     <div> time: ${time}</div> 
-    <div>Phonebook has info for ${persons.length} people</div>
+    <div>Phonebook has info for ${Person.length} people</div>
     </h1>`)
-  })
+})
 
-  app.get('/api/persons/:id', (request, response) =>{
-    const id = Number(request.params.id)
-    const person = persons.find(person => person.id === id)
-    
-    if (person) {
-      response.json(person)
-    } 
-    else {
-      response.status(404).end()
-    }
-  })
+app.get('/api/persons/:id', (request, response) => {
+  const id = request.params.id
+  Person.findById(id)
+    .then(person => {
+      if (person) {
+        response.json(person)
+      }
+      else {
+        response.status(404).end()
+      }
+    })
+    .catch(error => {
+      console.log(error);
+      response.status(500).end()
+    })
+})
 
-  app.delete('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    persons = persons.filter(person => person.id !== id)
-  
-    response.status(204).end()
-  })
+app.delete('/api/persons/:id', (request, response) => {
+  const id = request.params.id
+  persons = persons.filter(person => person.id !== id)
 
-app.post('/api/persons', (request, response) => {
+  response.status(204).end()
+})
+//create a list of person objects
+const personsToInsert =[
+  {name: "Default person1", number: "000-0001"},
+  {name: "Default person2", number: "000-0002"},
+  {name: "Default person3", number: "000-0003"}
+]
+//upload default person list to MongoDB
+app.post('api/personlist', async (request, response) =>{
+  Person.insertMany(personsToInsert)
+})
+
+app.post('/api/persons', async (request, response) => {
   const body = request.body
-
   // name or number property may not be empty
   //console.log(`body: ${body}`);
   //console.log(`name: ${body.name}, the type of name ${typeof(body.name)}`);
   //console.log(`number: ${body.number}`);
   if (!body.name || !body.number) {
-    return response.status(400).json({ 
-      error: 'name or number missing' 
+    return response.status(400).json({
+      error: 'name or number missing'
     })
   }
+  // user enter name 
   const name = body.name.toLowerCase()
-  console.log(`new person name: ${name}`);
-  const flag = persons.find(
-    person => {
-    console.log(`person name: ${person.name.toLowerCase()}`);
-    return (person.name.toLowerCase().includes(name) === true)
-  })
-  console.log(`found: ${flag !== undefined}`);
-  if(flag){
+  console.log(`new person name: ${name}`)
+  const personExisting = (query) => {
+    return query.then(result => result.length > 0).catch(() => false);
+  }
+  const personFound = async (name) => {
+    const personExist = Person.find({ name: { $regex: new RegExp('^' + name + '$', 'i') } })
+    return await personExisting(personExist)
+  }
+  const flag = await personFound(name)
+  console.log(`found: ${flag}`);
+  if (flag) {
     return response.status(400).json({
       error: 'name must be unique'
     })
   }
 
-  const person = {
+  // const person = {
+  //   name: body.name,
+  //   number: body.number,
+  //   id: Math.random(1,1000)
+  // }
+  //persons = persons.concat(person)
+  //response.json(persons)
+
+  const person = new Person({
     name: body.name,
     number: body.number,
-    id: Math.random(1,1000)
-  }
+  })
+  //using mongoose
+  person.save().then(savePerson => {
+    response.json(savePerson)
+  })
 
-  persons = persons.concat(person)
-
-  response.json(persons)
 })
 
-  const PORT = process.env.PORT || 3001
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
-  })
+const PORT = process.env.PORT || 3001
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+})
 
   // app2.get('/api/persons', (request, response) => {
   //   response.json(persons)

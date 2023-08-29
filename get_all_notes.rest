@@ -10,3 +10,22 @@ Content-Type: application/json
     "content": "VS Code REST client",
     "important": false
 }
+
+###
+
+Get http://localhost:3002/api/notes
+
+###
+
+Post http://localhost:3002/api/notes
+Content-Type: application/json
+//there has to be a space to split the content AND head
+
+{
+    "content": "ensure everything still work",
+    "important": true
+}
+
+###
+
+Get http://localhost:3002/api/notes/5c41c90e84d891c15dfa3431
