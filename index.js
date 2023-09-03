@@ -100,9 +100,11 @@ const Person = require('./models/person')
 const morgen = require('morgan')
 const app3 = morgen('combined')
 
-app.use(express.json())
-app.use(cors())
 app.use(express.static('build'))
+app.use(express.json())
+//app.use(requestLogger)
+app.use(cors())
+//app.use(requestLogger)
 
 const insertPersons = async (persons) =>{
   try {
@@ -194,7 +196,9 @@ app.get('/info', (request, response) => {
     </h1>`)
 })
 
-app.get('/api/persons/:id', (request, response) => {
+//app.use(requestLogger)
+
+app.get('/api/persons/:id', (request, response, next) => {
   const id = request.params.id
   Person.findById(id)
     .then(person => {
@@ -205,18 +209,26 @@ app.get('/api/persons/:id', (request, response) => {
         response.status(404).end()
       }
     })
-    .catch(error => {
-      console.log(error);
-      response.status(500).end()
-    })
+    // .catch(error => {
+    //   console.log(error);
+    //   console.log("Should not repeat the request without modifications");
+    //   response.status(400).send({error: "malformatted id"})
+    // })
+    .catch(error => next(error))
 })
 
-app.delete('/api/persons/:id', (request, response) => {
+app.delete('/api/persons/:id', (request, response, next) => {
   const id = request.params.id
-  persons = persons.filter(person => person.id !== id)
-
-  response.status(204).end()
+  //persons = persons.filter(person => person.id !== id)
+  //response.status(204).end()
+  Person.findByIdAndDelete(id)
+  .then(result => {
+    response.status(204).end()
+    console.log("person deleted successfully");
+  })
+  .catch(error => next(error))
 })
+
 //create a list of person objects
 const personsToInsert =[
   {name: "Default person1", number: "000-0001"},
@@ -227,6 +239,21 @@ const personsToInsert =[
 app.post('api/personlist', async (request, response) =>{
   Person.insertMany(personsToInsert)
 })
+// people info
+app.put('/api/persons/:id', async (request, response, next) => {
+  const id = request.params.id
+  const body = request.body
+  const person ={
+    name: body.name,
+    number: body.number
+  }
+  Person.findByIdAndUpdate(id, person, {new: true})
+  .then(updatePerson => {
+    response.json(updatePerson)
+  })
+  .catch(error => next(error))
+})
+
 
 app.post('/api/persons', async (request, response) => {
   const body = request.body
@@ -267,7 +294,7 @@ app.post('/api/persons', async (request, response) => {
 
   const person = new Person({
     name: body.name,
-    number: body.number,
+    number: body.number
   })
   //using mongoose
   person.save().then(savePerson => {
@@ -275,6 +302,24 @@ app.post('/api/persons', async (request, response) => {
   })
 
 })
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' })
+}
+// handler of requests with unknown endpoint
+app.use(unknownEndpoint)
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id or name must be unique' })
+  } 
+  next(error)
+}
+// this has to be the last loaded middleware.
+app.use(errorHandler)
+
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
