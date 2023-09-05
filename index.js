@@ -230,24 +230,25 @@ app.delete('/api/persons/:id', (request, response, next) => {
 })
 
 //create a list of person objects
-const personsToInsert =[
-  {name: "Default person1", number: "000-0001"},
-  {name: "Default person2", number: "000-0002"},
-  {name: "Default person3", number: "000-0003"}
-]
-//upload default person list to MongoDB
-app.post('api/personlist', async (request, response) =>{
-  Person.insertMany(personsToInsert)
-})
-// people info
+// const personsToInsert =[
+//   {name: "Default person1", number: "000-0001"},
+//   {name: "Default person2", number: "000-0002"},
+//   {name: "Default person3", number: "000-0003"}
+// ]
+// //upload default person list to MongoDB
+// app.post('api/personlist', async (request, response) =>{
+//   Person.insertMany(personsToInsert)
+// })
+// update person's number
 app.put('/api/persons/:id', async (request, response, next) => {
   const id = request.params.id
   const body = request.body
+  const {name, number} = body
   const person ={
     name: body.name,
     number: body.number
   }
-  Person.findByIdAndUpdate(id, person, {new: true})
+  Person.findByIdAndUpdate(id, person, {new: true, runValidators: true, context:'query'})
   .then(updatePerson => {
     response.json(updatePerson)
   })
@@ -255,7 +256,7 @@ app.put('/api/persons/:id', async (request, response, next) => {
 })
 
 
-app.post('/api/persons', async (request, response) => {
+app.post('/api/persons', async (request, response, next) => {
   const body = request.body
   // name or number property may not be empty
   //console.log(`body: ${body}`);
@@ -300,7 +301,7 @@ app.post('/api/persons', async (request, response) => {
   person.save().then(savePerson => {
     response.json(savePerson)
   })
-
+  .catch(error => next(error))
 })
 
 const unknownEndpoint = (request, response) => {
@@ -314,7 +315,10 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id or name must be unique' })
-  } 
+  }
+  else if(error.name === 'ValidationError'){
+    return response.status(400).json({error: error.message})
+  }
   next(error)
 }
 // this has to be the last loaded middleware.

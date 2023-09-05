@@ -19,8 +19,8 @@ POST http://localhost:3002/api/persons
 Content-Type: application/json
 
 {
-    "name": "XXX2",
-    "number": "000-00001"
+    "name": "XX",
+    "number": "000-00000001"
 }
 
 ###
@@ -29,7 +29,7 @@ Get http://localhost:3002/api/persons
 
 ###
 
-Get http://localhost:3002/api/persons/84dfd10c734df401f2821a5d
+DELETE  http://localhost:3002/api/persons/84dfd10c734df401f2821a5d
 
 ###
 
@@ -41,7 +41,7 @@ Post http://localhost:3002/api/personlist
 
 ###
 
-Get http://localhost:3002/api/persons/64f42b0519db1cf8c269b417
+Get http://localhost:3002/api/persons/64f4ee7082b1ea9bee04a3d6
 
 ###
 
@@ -49,6 +49,9 @@ PUT http://localhost:3002/api/persons/64f4e7db5d6d238c824ffa0f
 Content-Type: application/json
 
 {
-    "name": "XXX2",
-    "number":"000-00002"
+    "name": "XXX5",
+    "number":"000-00000005"
 }
+
+###
+

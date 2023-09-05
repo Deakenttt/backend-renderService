@@ -11,10 +11,24 @@ mongoose.connect(url)
     .catch((error) => {
         console.log('error connecting to MongoDB:', error.message)
     })
-
+    
 const personSchema = new mongoose.Schema({
-    name: String,
-    number: String,
+    name: {
+        type: String,
+        required: true,
+        minlength: 3, // Minimum name length of 3 characters
+    },
+    number: {
+        type: String,
+        required: true,
+        validate: {
+            validator: function (value) {
+                // Check if the number matches the specified formats
+                return /^\d{2}-\d{7} $| ^\d{3}-\d{8}$/.test(value);
+            },
+            message: 'Invalid number format. Valid formats are dd-ddddddd or ddd-dddddddd',
+        }
+    },
 })
 personSchema.set('toJSON', {
     transform: (document, returnedObject) => {
